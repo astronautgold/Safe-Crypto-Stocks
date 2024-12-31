@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRYPTO</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #F5FFFA;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1E90FF;
+            margin-top: 40px;
+            font-size: 32px;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .form-group {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-group input {
+            padding: 12px;
+            width: 250px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            border-color: #007bff;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 40px;
+            border-collapse: collapse;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 14px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .current-price-column {
+            display: none;
+        }
+
+        .select-circle {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background-color: #ccc;
+            cursor: pointer;
+            border: 2px solid #ddd;
+            transition: background-color 0.3s;
+        }
+
+        .selected {
+            background-color: #28a745;
+        }
+
+        .highlight {
+            background-color: #28a745 !important;
+            color: white;
+        }
+
+        input[type="number"] {
+            width: 100px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .submit-btn {
+            background-color: #007bff;
+            color: white;
+            font-size: 18px;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s;
+        }
+
+        .submit-btn:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        .submit-btn:active {
+            transform: scale(1);
+        }
+
+        @media (max-width: 768px) {
+            table, th, td {
+                font-size: 14px;
+            }
+            .form-group input {
+                width: 100%;
+                font-size: 14px;
+            }
+        }
+
+        .stock-name {
+            font-weight: bold;
+            color: #007bff;
+            transition: color 0.3s;
+        }
+
+        .stock-name:hover {
+            color: #ff4500;
+        }
+
+        .positive-change {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .negative-change {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        /* Popup Styles */
+        .popup-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .popup-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            width: 300px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .popup-box .icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+
+        .popup-box .success {
+            color: #28a745;
+        }
+
+        .popup-box .error {
+            color: #e74c3c;
+        }
+
+        .popup-box .message {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .popup-box button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .popup-box button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>BUY-CRYPTO-CURRENCIES</h1>
+        <div class="form-group">
+            <label for="portfolioId">Enter Portfolio ID:</label>
+            <input type="number" id="portfolioId" placeholder="Enter Portfolio ID">
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Stock Name</th>
+                    <th class="current-price-column">Current Price</th>
+                    <th>Current Price</th>
+                    <th>Percentage Change (24h)</th>
+                    <th>Holdings</th>
+                    <th>Select</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="stock : ${stocks}" 
+                    th:attr="onclick='selectRow(' + ${stock.id} + ', this.querySelector(\'.select-circle\'), this, \'' + ${stock.stockName} + '\', ' + ${stock.currentPrice} + ', ' + ${stock.avgBuyPrice} + ', ' + ${stock.percentChange24h} + ')'">
+                    <td th:text="${stock.id}">1</td>
+                    <td class="stock-name" th:text="${stock.stockName}">Bitcoin</td>
+                    <td class="current-price-column" th:text="${stock.currentPrice}">$150.25</td>
+                    <td th:text="${stock.avgBuyPrice}">$145.00</td>
+                    <td class="change-column">
+                        <span th:class="${stock.percentChange24h > 0 ? 'positive-change' : 'negative-change'}" th:text="${stock.percentChange24h}">+5.00%</span>
+                    </td>
+                    <td><input type="number" th:id="'holdings-' + ${stock.id}" th:value="${stock.holdings}" min="0" /></td>
+                    <td>
+                        <div class="select-circle" title="Select this stock"></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="form-group">
+            <button class="submit-btn" type="button" onclick="submitSelection()">Buy Selected Stocks</button>
+        </div>
+    </div>
+
+    <!-- Popup Structure -->
+    <div class="popup-container" id="popup-container">
+        <div class="popup-box">
+            <div class="icon" id="popup-icon">👍</div>
+            <div class="message" id="popup-message">Success message here</div>
+            <button onclick="closePopup()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedStocks = [];
+
+        /**
+         * Shows the popup with a specific message and type.
+         * @param {string} message - The message to display.
+         * @param {string} type - The type of message ('success' or 'error').
+         */
+        function showPopup(message, type) {
+            const popupContainer = document.getElementById('popup-container');
+            const popupMessage = document.getElementById('popup-message');
+            const popupIcon = document.getElementById('popup-icon');
+
+            popupMessage.innerText = message;
+
+            if (type === 'success') {
+                popupIcon.innerText = '😊';
+                popupIcon.classList.remove('error');
+                popupIcon.classList.add('success');
+            } else if (type === 'error') {
+                popupIcon.innerText = '❌';
+                popupIcon.classList.remove('success');
+                popupIcon.classList.add('error');
+            }
+
+            popupContainer.style.display = 'flex';
+        }
+
+        /**
+         * Closes the popup.
+         */
+        function closePopup() {
+            document.getElementById('popup-container').style.display = 'none';
+        }
+
+        /**
+         * Selects or deselects a stock row.
+         * @param {number} stockId - The ID of the stock.
+         * @param {HTMLElement} circleElement - The circle element for selection.
+         * @param {HTMLElement} rowElement - The table row element.
+         * @param {string} stockName - The name of the stock.
+         * @param {number} currentPrice - The current price of the stock.
+         * @param {number} avgBuyPrice - The average buy price.
+         * @param {number} percentChange24h - The 24-hour percentage change.
+         */
+        function selectRow(stockId, circleElement, rowElement, stockName, currentPrice, avgBuyPrice, percentChange24h) {
+            const holdingsInput = document.getElementById(`holdings-${stockId}`);
+            const holdings = holdingsInput.value.trim();
+            const parsedHoldings = parseFloat(holdings);
+            const index = selectedStocks.findIndex(item => item.stockId === stockId);
+
+            if (index === -1) {
+                if (holdings === '' || isNaN(parsedHoldings) || parsedHoldings <= 0) {
+                    showPopup('Please enter a valid holdings value before selecting.', 'error');
+                    return;
+                }
+                selectedStocks.push({
+                    stockId,
+                    stockName,
+                    currentPrice,
+                    holdings: parsedHoldings,
+                    avgBuyPrice,
+                    percentChange24h
+                });
+                circleElement.classList.add('selected');
+                rowElement.classList.add('highlight');
+            } else {
+                selectedStocks.splice(index, 1);
+                circleElement.classList.remove('selected');
+                rowElement.classList.remove('highlight');
+            }
+        }
+
+        /**
+         * Submits the selected stocks for purchase.
+         */
+        function submitSelection() {
+    if (selectedStocks.length === 0) {
+        showPopup('No stocks selected.', 'error');
+        return;
+    }
+
+    const portfolioId = document.getElementById('portfolioId').value.trim();
+
+    if (portfolioId === '' || isNaN(parseInt(portfolioId))) {
+        showPopup('Please enter a valid Portfolio ID.', 'error');
+        return;
+    }
+
+    const stockData = selectedStocks.map(stock => ({
+        stockName: stock.stockName,
+        currentPrice: stock.currentPrice,
+        holdings: stock.holdings,
+        avgBuyPrice: stock.avgBuyPrice,
+        percentChange24h: stock.percentChange24h
+    }));
+
+    fetch(`/stock/bulk-insert/${portfolioId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(stockData)
+    })
+    .then(response => {
+        if (response.ok) {
+            showPopup('Stocks Purchased successfully!', 'success');
+            selectedStocks = [];
+            document.querySelectorAll('.select-circle').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('.highlight').forEach(el => el.classList.remove('highlight'));
+            setTimeout(() => {
+                window.location.href = '/portfolio';
+            }, 1000); // Increased delay for better UX
+        } else {
+            // Attempt to parse JSON, fallback to a default error message if parsing fails
+            return response.text().then(text => {
+                try {
+                    const data = JSON.parse(text);
+                    const errorMessage = data.message || 'Warning! You are attempting to make a purchase that exceeds your budget.';
+                    showPopup(errorMessage, 'error');
+                } catch (e) {
+                    // Handle non-JSON responses
+                    showPopup('Warning! You are attempting to make a purchase that exceeds your budget.', 'error');
+                }
+            });
+        }
+    })
+    .catch(error => {
+        showPopup('Error purchasing stocks. Please try again later.', 'error');
+    });
+}
+        
+    </script>
+</body>
+</html>
